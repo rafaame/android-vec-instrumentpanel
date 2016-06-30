@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="me.rafaa.vecinstrumentpanel">
+
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.BLUETOOTH" />
+    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_LOCATION_EXTRA_COMMANDS" />
+    <uses-permission android:name="android.permission.READ_LOGS" />
+
+    <application
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:supportsRtl="true"
+        android:theme="@style/AppTheme">
+        <activity
+            android:name="me.rafaa.vecinstrumentpanel.activity.DashboardActivity"
+            android:configChanges="orientation|keyboardHidden|screenSize"
+            android:launchMode="singleInstance"
+            android:label="@string/app_name"
+            android:theme="@style/FullscreenTheme"
+            android:screenOrientation="landscape">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name="me.rafaa.vecinstrumentpanel.activity.ConfigActivity"
+            android:launchMode="singleInstance"
+            android:label="@string/app_name"
+            android:screenOrientation="landscape" />
+
+        <service
+            android:name="me.rafaa.vecinstrumentpanel.io.ObdGatewayService"
+            android:launchMode="singleInstance"
+            android:exported="false" />
+        <service
+            android:name="me.rafaa.vecinstrumentpanel.io.MockObdGatewayService"
+            android:launchMode="singleInstance"
+            android:exported="false" />
+    </application>
+
+</manifest>

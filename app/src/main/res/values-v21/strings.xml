@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings">Settings</string>
+    <string name="console">Console</string>
+    <string name="fault_codes">Fault Codes</string>
+</resources>
