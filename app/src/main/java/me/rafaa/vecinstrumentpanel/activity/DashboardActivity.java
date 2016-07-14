@@ -7,6 +7,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
+import android.content.res.AssetManager;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -16,10 +17,10 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.location.LocationProvider;
-import android.os.IBinder;
-import android.os.PowerManager;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.IBinder;
+import android.os.PowerManager;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
@@ -27,23 +28,43 @@ import android.widget.ImageView;
 
 import com.github.pires.obd.commands.ObdCommand;
 import com.github.pires.obd.enums.AvailableCommandNames;
+import com.google.common.io.ByteStreams;
+import com.google.inject.Inject;
+import com.skobbler.ngx.SKMaps;
+import com.skobbler.ngx.map.SKAnnotation;
+import com.skobbler.ngx.map.SKCoordinateRegion;
+import com.skobbler.ngx.map.SKMapCustomPOI;
+import com.skobbler.ngx.map.SKMapPOI;
+import com.skobbler.ngx.map.SKMapSurfaceListener;
+import com.skobbler.ngx.map.SKMapSurfaceView;
+import com.skobbler.ngx.map.SKMapViewHolder;
+import com.skobbler.ngx.map.SKMapViewStyle;
+import com.skobbler.ngx.map.SKPOICluster;
+import com.skobbler.ngx.map.SKScreenPoint;
+import com.skobbler.ngx.navigation.SKNavigationListener;
+import com.skobbler.ngx.navigation.SKNavigationManager;
+import com.skobbler.ngx.navigation.SKNavigationSettings;
+import com.skobbler.ngx.navigation.SKNavigationState;
+import com.skobbler.ngx.sdktools.navigationui.SKToolsNavigationConfiguration;
+import com.skobbler.ngx.sdktools.navigationui.SKToolsNavigationListener;
+import com.skobbler.ngx.sdktools.navigationui.SKToolsNavigationManager;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.HashMap;
+import java.util.List;
 
 import me.rafaa.vecinstrumentpanel.R;
 import me.rafaa.vecinstrumentpanel.config.ObdConfig;
 import me.rafaa.vecinstrumentpanel.io.AbstractGatewayService;
 import me.rafaa.vecinstrumentpanel.io.MockObdGatewayService;
 import me.rafaa.vecinstrumentpanel.io.ObdCommandJob;
-
-import com.google.inject.Inject;
-
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import me.rafaa.vecinstrumentpanel.io.ObdGatewayService;
 import me.rafaa.vecinstrumentpanel.io.ObdProgressListener;
-import roboguice.activity.RoboActivity;
+import roboguice.activity.RoboFragmentActivity;
 import roboguice.inject.ContentView;
 import roboguice.inject.InjectView;
 
@@ -51,7 +72,7 @@ import static me.rafaa.vecinstrumentpanel.activity.ConfigActivity.getGpsDistance
 import static me.rafaa.vecinstrumentpanel.activity.ConfigActivity.getGpsUpdatePeriod;
 
 @ContentView(R.layout.activity_dashboard)
-public class DashboardActivity extends RoboActivity implements ObdProgressListener, LocationListener, GpsStatus.Listener
+public class DashboardActivity extends RoboFragmentActivity implements ObdProgressListener, LocationListener, GpsStatus.Listener, SKToolsNavigationListener, SKMapSurfaceListener
 {
 
     private static final String TAG = "DashboardActivity";
@@ -82,6 +103,10 @@ public class DashboardActivity extends RoboActivity implements ObdProgressListen
 
     @InjectView(R.id.status_obd)
     private ImageView iconStatusObdView;
+
+    //private SKMapFragment mapFragment = null;
+	private SKMapSurfaceView mapView;
+	private SKMapViewHolder mapHolder;
 
     private boolean isObdServiceBound;
     private static boolean bluetoothDefaultIsEnable = false;
@@ -196,7 +221,7 @@ public class DashboardActivity extends RoboActivity implements ObdProgressListen
 
     };
 
-    public Map<String, String> commandResult = new HashMap<String, String>();
+    public java.util.Map<String, String> commandResult = new HashMap<String, String>();
     private final Runnable mQueueCommands = new Runnable()
     {
 
@@ -386,6 +411,30 @@ public class DashboardActivity extends RoboActivity implements ObdProgressListen
 
     }
 
+    private void initMapFragment()
+    {
+
+        final String path = getFilesDir().getPath() + "/vec-instrument-panel-maps/";
+
+        /*mapFragment = (SKMapFragment) getFragmentManager().findFragmentById(R.id.mapFragment);
+        mapFragment.initialise();
+
+		SKNavigationSettings navigationSettings = new SKNavigationSettings();
+		navigationSettings.setNavigationType(SKNavigationSettings.SKNavigationType.REAL);
+		navigationSettings.setNavigationMode(SKNavigationSettings.SKNavigationMode.CAR);
+		navigationSettings.setCcpAsCurrentPosition(true);
+		navigationSettings.setFcdEnabled(true);
+
+		SKNavigationManager navigationManager = SKNavigationManager.getInstance();
+		navigationManager.setMapView();
+		navigationManager.setNavigationListener(this);
+		navigationManager.startNavigation(navigationSettings);*/
+
+		mapHolder = (SKMapViewHolder) findViewById(R.id.mapFragment);
+		mapHolder.setMapSurfaceListener(DashboardActivity.this);
+
+    }
+
     private void wakeLock()
     {
 
@@ -402,15 +451,24 @@ public class DashboardActivity extends RoboActivity implements ObdProgressListen
 
     }
 
+    private void init()
+    {
+
+        initViews();
+        initOrientationSensor();
+        initGps();
+
+		initMapFragment();
+
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
 
         super.onCreate(savedInstanceState);
 
-        initViews();
-        initOrientationSensor();
-        initGps();
+        init();
 
     }
 
@@ -428,6 +486,7 @@ public class DashboardActivity extends RoboActivity implements ObdProgressListen
     {
 
         super.onResume();
+		mapHolder.onResume();
         Log.d(TAG, "Resuming..");
 
         wakeLock();
@@ -442,6 +501,7 @@ public class DashboardActivity extends RoboActivity implements ObdProgressListen
     {
 
         super.onPause();
+		mapHolder.onPause();
         Log.d(TAG, "Pausing..");
 
         releaseWakeLock();
@@ -458,7 +518,19 @@ public class DashboardActivity extends RoboActivity implements ObdProgressListen
         {
 
             locationService.removeGpsStatusListener(this);
-            locationService.removeUpdates(this);
+
+            try
+            {
+
+                locationService.removeUpdates(this);
+
+            }
+            catch(SecurityException e)
+            {
+
+                throw e;
+
+            }
 
         }
 
@@ -731,13 +803,24 @@ public class DashboardActivity extends RoboActivity implements ObdProgressListen
             if(mLocProvider != null)
             {
 
-                locationService.addGpsStatusListener(this);
-
-                if(locationService.isProviderEnabled(LocationManager.GPS_PROVIDER))
+                try
                 {
 
-                    //gpsStatusTextView.setText(getString(R.string.status_gps_ready));
-                    return true;
+                    locationService.addGpsStatusListener(this);
+
+                    if(locationService.isProviderEnabled(LocationManager.GPS_PROVIDER))
+                    {
+
+                        //gpsStatusTextView.setText(getString(R.string.status_gps_ready));
+                        return true;
+
+                    }
+
+                }
+                catch(SecurityException e)
+                {
+
+                    throw e;
 
                 }
 
@@ -754,29 +837,49 @@ public class DashboardActivity extends RoboActivity implements ObdProgressListen
     private synchronized void gpsStart()
     {
 
-        if(!mGpsIsStarted && mLocProvider != null && locationService != null && locationService.isProviderEnabled(LocationManager.GPS_PROVIDER))
+        try
         {
 
-            locationService.requestLocationUpdates(mLocProvider.getName(), getGpsUpdatePeriod(prefs), getGpsDistanceUpdatePeriod(prefs), this);
-            mGpsIsStarted = true;
+            if (!mGpsIsStarted && mLocProvider != null && locationService != null && locationService.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+
+                locationService.requestLocationUpdates(mLocProvider.getName(), getGpsUpdatePeriod(prefs), getGpsDistanceUpdatePeriod(prefs), this);
+                mGpsIsStarted = true;
+
+            } else {
+
+                //gpsStatusTextView.setText(getString(R.string.status_gps_no_support));
+
+            }
 
         }
-        else
+        catch(SecurityException e)
         {
 
-            //gpsStatusTextView.setText(getString(R.string.status_gps_no_support));
+            throw e;
 
         }
+
     }
 
     private synchronized void gpsStop()
     {
 
-        if (mGpsIsStarted)
+        try
         {
 
-            locationService.removeUpdates(this);
-            mGpsIsStarted = false;
+            if (mGpsIsStarted)
+            {
+
+                locationService.removeUpdates(this);
+                mGpsIsStarted = false;
+
+            }
+
+        }
+        catch(SecurityException e)
+        {
+
+            throw e;
 
         }
 
@@ -837,4 +940,244 @@ public class DashboardActivity extends RoboActivity implements ObdProgressListen
 
     }
 
+    public static void copyAssetsToFolder(AssetManager assetManager, String sourceFolder, String destinationFolder) throws IOException
+    {
+
+        final String[] assets = assetManager.list(sourceFolder);
+        final File destFolderFile = new File(destinationFolder);
+
+        if(!destFolderFile.exists())
+            destFolderFile.mkdirs();
+
+        copyAsset(assetManager, sourceFolder, destinationFolder, assets);
+
+    }
+
+    public static void copyAsset(AssetManager assetManager, String sourceFolder, String destinationFolder, String... assetsNames) throws IOException
+    {
+
+        for(String assetName : assetsNames)
+        {
+
+            OutputStream destinationStream = new FileOutputStream(new File(destinationFolder + "/" + assetName));
+            String[] files = assetManager.list(sourceFolder + "/" + assetName);
+
+            if(files == null || files.length == 0)
+            {
+
+                InputStream asset = assetManager.open(sourceFolder + "/" + assetName);
+
+                try
+                {
+
+                    ByteStreams.copy(asset, destinationStream);
+
+                }
+                finally
+                {
+
+                    asset.close();
+                    destinationStream.close();
+
+                }
+
+            }
+
+        }
+
+    }
+
+	@Override
+	public void onActionPan()
+	{
+
+	}
+
+	@Override
+	public void onActionZoom()
+	{
+
+	}
+
+	@Override
+	public void onSurfaceCreated(SKMapViewHolder skMapViewHolder)
+	{
+
+		final String path = getFilesDir().getPath() + "/vec-instrument-panel-maps/";
+
+		SKToolsNavigationConfiguration configuration = new SKToolsNavigationConfiguration();
+		configuration.setDistanceUnitType(SKMaps.SKDistanceUnitType.DISTANCE_UNIT_KILOMETER_METERS);
+		configuration.setSpeedWarningThresholdInCity(5.0);
+		configuration.setSpeedWarningThresholdOutsideCity(5.0);
+		configuration.setAutomaticDayNight(false);
+		configuration.setNavigationType(SKNavigationSettings.SKNavigationType.REAL);
+		configuration.setDayStyle(new SKMapViewStyle(path + ".DayStyle/", "daystyle.json"));
+		configuration.setNightStyle(new SKMapViewStyle(path + ".NightStyle/", "nightstyle.json"));
+
+		SKToolsNavigationManager navigationManager = new SKToolsNavigationManager(this, R.id.panel_left);
+		navigationManager.setNavigationListener(this);
+		navigationManager.startFreeDriveWithConfiguration(configuration, mapHolder);
+
+		/*SKNavigationSettings navigationSettings = new SKNavigationSettings();
+		navigationSettings.setNavigationType(SKNavigationSettings.SKNavigationType.REAL);
+		navigationSettings.setNavigationMode(SKNavigationSettings.SKNavigationMode.CAR);
+		navigationSettings.setCcpAsCurrentPosition(true);
+		navigationSettings.setFcdEnabled(true);
+
+		SKNavigationManager navigationManager = SKNavigationManager.getInstance();
+		navigationManager.setMapView(mapHolder.getMapSurfaceView());
+		navigationManager.setNavigationListener(this);
+		navigationManager.startNavigation(navigationSettings);*/
+
+	}
+
+	@Override
+	public void onMapRegionChanged(SKCoordinateRegion skCoordinateRegion)
+	{
+
+	}
+
+	@Override
+	public void onMapRegionChangeStarted(SKCoordinateRegion skCoordinateRegion)
+	{
+
+	}
+
+	@Override
+	public void onMapRegionChangeEnded(SKCoordinateRegion skCoordinateRegion)
+	{
+
+	}
+
+	@Override
+	public void onDoubleTap(SKScreenPoint skScreenPoint)
+	{
+
+	}
+
+	@Override
+	public void onSingleTap(SKScreenPoint skScreenPoint)
+	{
+
+	}
+
+	@Override
+	public void onRotateMap()
+	{
+
+	}
+
+	@Override
+	public void onLongPress(SKScreenPoint skScreenPoint)
+	{
+
+	}
+
+	@Override
+	public void onInternetConnectionNeeded()
+	{
+
+	}
+
+	@Override
+	public void onMapActionDown(SKScreenPoint skScreenPoint)
+	{
+
+	}
+
+	@Override
+	public void onMapActionUp(SKScreenPoint skScreenPoint)
+	{
+
+	}
+
+	@Override
+	public void onPOIClusterSelected(SKPOICluster skpoiCluster)
+	{
+
+	}
+
+	@Override
+	public void onMapPOISelected(SKMapPOI skMapPOI)
+	{
+
+	}
+
+	@Override
+	public void onAnnotationSelected(SKAnnotation skAnnotation)
+	{
+
+	}
+
+	@Override
+	public void onCustomPOISelected(SKMapCustomPOI skMapCustomPOI)
+	{
+
+	}
+
+	@Override
+	public void onCompassSelected()
+	{
+
+	}
+
+	@Override
+	public void onCurrentPositionSelected()
+	{
+
+	}
+
+	@Override
+	public void onObjectSelected(int i)
+	{
+
+	}
+
+	@Override
+	public void onInternationalisationCalled(int i)
+	{
+
+	}
+
+	@Override
+	public void onBoundingBoxImageRendered(int i)
+	{
+
+	}
+
+	@Override
+	public void onGLInitializationError(String s)
+	{
+
+	}
+
+	@Override
+	public void onNavigationStarted()
+	{
+
+	}
+
+	@Override
+	public void onNavigationEnded()
+	{
+
+	}
+
+	@Override
+	public void onRouteCalculationStarted()
+	{
+
+	}
+
+	@Override
+	public void onRouteCalculationCompleted()
+	{
+
+	}
+
+	@Override
+	public void onRouteCalculationCanceled()
+	{
+
+	}
 }

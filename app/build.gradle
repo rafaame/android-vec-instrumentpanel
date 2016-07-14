@@ -1,14 +1,14 @@
 //noinspection GradleCompatible
 apply plugin: 'com.android.application'
+//apply plugin: 'java'
 
 android {
-    compileSdkVersion 21
+    compileSdkVersion 23
     buildToolsVersion "24.0.0"
-
     defaultConfig {
         applicationId "me.rafaa.vecinstrumentpanel"
-        minSdkVersion 14
-        targetSdkVersion 21
+        minSdkVersion 15
+        targetSdkVersion 23
         versionCode 1
         versionName "1.0"
     }
@@ -18,15 +18,62 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+    productFlavors {
+    }
+}
+
+repositories {
+    maven {
+        url "http://developer.skobbler.com/maven/"
+    }
+}
+
+configurations {
+    skobblersdk
 }
 
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
+    compile fileTree(include: ['*.jar'], dir: 'libs')
+    compile fileTree(dir: "$buildDir", include: 'native-libs.jar')
     testCompile 'junit:junit:4.12'
-    compile 'com.android.support:appcompat-v7:21.0.0'
-    compile 'com.android.support:support-v4:21.0.0'
+    compile 'com.android.support:appcompat-v7:23.1.1'
     compile 'com.github.pires:obd-java-api:1.0-RC16'
     compile 'org.roboguice:roboguice:3.+'
     provided 'org.roboguice:roboblender:3.+'
     compile 'com.squareup.retrofit:retrofit:1.9.0'
+    skobblersdk 'com.skobbler.ngx:SKMaps:2.5.0'
+    compile project (':sdktools')
+}
+
+def assetsPath = "$projectDir/src/main/assets"
+def libsPath = "$projectDir/libs"
+def jniLibsPath = "$projectDir/src/main/jniLibs"
+
+task installSKMaps << {
+    copy {
+        from configurations.skobblersdk
+        into "$buildDir/skobblersdk-down"
+        rename { String fileName -> 'skobblersdkres.zip' }
+    }
+    copy {
+        from zipTree("$buildDir/skobblersdk-down/skobblersdkres.zip")
+        into "$buildDir/skobblersdk-down"
+    }
+    delete("$jniLibsPath",
+            "$assetsPath/SKMaps.zip",
+            "$libsPath/SKMaps.jar")
+    copy {
+        from "${buildDir}/skobblersdk-down/jniLibs"
+        into "$jniLibsPath"
+    }
+    copy {
+        from "${buildDir}/skobblersdk-down/SKMaps.zip"
+        into "$assetsPath"
+    }
+    copy {
+        from "${buildDir}/skobblersdk-down/SKMaps.jar"
+        into "$libsPath"
+    }
+    delete("$buildDir/skobblersdk-down")
+    delete(configurations.skobblersdk)
 }

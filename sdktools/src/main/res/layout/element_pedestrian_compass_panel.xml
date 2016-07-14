@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:background="@color/navigation_bottom_bar_day">
+
+    <RelativeLayout
+        android:id="@+id/pedestrian_compass_panel_layout"
+        android:layout_width="@dimen/navigation_panel_landscape_height"
+        android:layout_height="@dimen/navigation_bottom_panel_landscape_height"
+        android:clickable="true"
+        android:onClick="onClick">
+
+        <ImageView
+            android:id="@+id/pedestrian_compass_panel_image_view"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:background="@drawable/icon_historical_positions"
+            />
+    </RelativeLayout>
+</RelativeLayout>

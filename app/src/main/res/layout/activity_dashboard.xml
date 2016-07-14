@@ -82,7 +82,19 @@
             android:layout_width="400dp"
             android:layout_height="match_parent"
             android:id="@+id/panel_left"
-            android:layout_gravity="left"></TableLayout>
+            android:layout_gravity="left">
+
+            <!--<fragment-->
+                <!--android:layout_width="match_parent"-->
+                <!--android:layout_height="match_parent"-->
+                <!--class="com.skobbler.ngx.map.SKMapFragment"-->
+                <!--android:id="@+id/mapFragment" />-->
+
+            <com.skobbler.ngx.map.SKMapViewHolder
+                android:id="@+id/mapFragment"
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent" />
+        </TableLayout>
 
         <TableLayout
             android:layout_width="480dp"

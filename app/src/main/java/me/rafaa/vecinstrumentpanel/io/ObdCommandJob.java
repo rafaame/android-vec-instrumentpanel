@@ -67,7 +67,7 @@ public class ObdCommandJob
         EXECUTION_ERROR,
         QUEUE_ERROR,
         NOT_SUPPORTED
-        
+
     }
 
 }

@@ -11,6 +11,10 @@
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_LOCATION_EXTRA_COMMANDS" />
     <uses-permission android:name="android.permission.READ_LOGS" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+    <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE"/>
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
 
     <application
         android:allowBackup="true"
@@ -24,6 +28,13 @@
             android:launchMode="singleInstance"
             android:label="@string/app_name"
             android:theme="@style/FullscreenTheme"
+            android:screenOrientation="landscape">
+        </activity>
+        <activity
+            android:name="me.rafaa.vecinstrumentpanel.activity.SplashActivity"
+            android:configChanges="orientation|keyboardHidden|screenSize"
+            android:launchMode="singleInstance"
+            android:label="@string/app_name"
             android:screenOrientation="landscape">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -45,6 +56,8 @@
             android:name="me.rafaa.vecinstrumentpanel.io.MockObdGatewayService"
             android:launchMode="singleInstance"
             android:exported="false" />
+
+        <meta-data android:name="com.skobbler.ngx.API_KEY" android:value="a3c41bb1817c849a6b815174c3958ab94cfc6beec419345c4a9dde4f0e6704de"/>
     </application>
 
 </manifest>

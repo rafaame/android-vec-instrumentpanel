@@ -4,6 +4,7 @@
     <modules>
       <module fileurl="file://$PROJECT_DIR$/android-vec-instrument-panel.iml" filepath="$PROJECT_DIR$/android-vec-instrument-panel.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
+      <module fileurl="file://$PROJECT_DIR$/sdktools/sdktools.iml" filepath="$PROJECT_DIR$/sdktools/sdktools.iml" />
     </modules>
   </component>
 </project>
