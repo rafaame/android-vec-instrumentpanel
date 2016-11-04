@@ -25,7 +25,7 @@
     <color name="green_panel_night_background">#22AC4A</color>
     <color name="green_panel_night_text">#70FF98</color>
 
-    <color name="blue_panel_day_background">#005EBC</color>
+    <color name="blue_panel_day_background">#005ebc</color>
     <color name="blue_panel_night_background">#0080FF</color>
     <color name="blue_panel_night_text">#7FBFFF</color>
 

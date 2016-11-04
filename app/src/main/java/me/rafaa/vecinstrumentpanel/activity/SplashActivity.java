@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.AssetManager;
 import android.os.Bundle;
+import android.os.Environment;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
@@ -37,21 +38,16 @@ import roboguice.inject.InjectView;
 @ContentView(R.layout.activity_splash)
 public class SplashActivity extends RoboActivity implements SKPrepareMapTextureListener, SKMapUpdateListener
 {
+	private static final String TAG = SplashActivity.class.getName();
 
-	private static final String TAG = "SplashActivity";
 	private static final int PERMISSION_ACCESS_FINE_LOCATION = 1;
 	private static final int PERMISSION_WRITE_EXTERNAL_STORAGE = 2;
+	private static final int PERMISSION_READ_PHONE_STATE = 2;
 
-	@InjectView(R.id.main_content)
-	private View mainContentView;
+	private void prepareSkEngine() {
+		final String path = getFilesDir().getPath() + "/maps/";
 
-	private void prepareSkEngine()
-	{
-
-		final String path = getFilesDir().getPath() + "/vec-instrument-panel-maps/";
-
-		if(!new File(path).exists())
-		{
+		if(!new File(path).exists()) {
 
 			new SKPrepareMapTextureThread(this, path, "SKMaps.zip", this).start();
 
@@ -70,7 +66,7 @@ public class SplashActivity extends RoboActivity implements SKPrepareMapTextureL
 	private boolean initSkEngine()
 	{
 
-		final String path = getFilesDir().getPath() + "/vec-instrument-panel-maps/";
+		final String path = getFilesDir().getPath() + "/maps/";
 
 		SKLogging.enableLogs(true);
 
@@ -111,6 +107,8 @@ public class SplashActivity extends RoboActivity implements SKPrepareMapTextureL
 			return false;
 
 		}
+
+        launchDashboardActivity();
 
 		return true;
 
@@ -163,6 +161,15 @@ public class SplashActivity extends RoboActivity implements SKPrepareMapTextureL
 	private boolean checkPermissions()
 	{
 
+		if(ContextCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED)
+		{
+
+			ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_PHONE_STATE}, PERMISSION_READ_PHONE_STATE);
+
+			return false;
+
+		}
+
 		if(ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED)
 		{
 
@@ -188,10 +195,57 @@ public class SplashActivity extends RoboActivity implements SKPrepareMapTextureL
 	private void init()
 	{
 
-		if(!checkPermissions())
+		if(! checkPermissions())
 			return;
 
+
+		writeLogs();
 		prepareSkEngine();
+
+	}
+
+	public boolean isExternalStorageWritable()
+	{
+
+		String state = Environment.getExternalStorageState();
+		if(Environment.MEDIA_MOUNTED.equals(state))
+			return true;
+
+		return false;
+
+	}
+
+	public void writeLogs()
+	{
+
+		if (isExternalStorageWritable())
+		{
+
+			File appDirectory = new File( Environment.getExternalStorageDirectory() + "/me.rafaa.vecinstrumentpanel" );
+			File logDirectory = new File( appDirectory + "/log" );
+			File logFile = new File( logDirectory, "logcat" + System.currentTimeMillis() + ".txt" );
+
+			if(!appDirectory.exists())
+				appDirectory.mkdir();
+
+			if(!logDirectory.exists())
+				logDirectory.mkdir();
+
+			try
+			{
+
+				Process process = Runtime.getRuntime().exec("logcat -c");
+				process = Runtime.getRuntime().exec("logcat -f " + logFile);
+
+			}
+			catch(IOException e)
+			{
+
+				e.printStackTrace();
+
+			}
+
+		}
 
 	}
 
@@ -202,7 +256,6 @@ public class SplashActivity extends RoboActivity implements SKPrepareMapTextureL
 		super.onCreate(savedInstanceState);
 
 		init();
-		launchDashboardActivity();
 
 	}
 

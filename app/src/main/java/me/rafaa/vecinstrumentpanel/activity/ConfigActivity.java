@@ -22,7 +22,6 @@ import android.widget.Toast;
 import com.github.pires.obd.commands.ObdCommand;
 import com.github.pires.obd.enums.ObdProtocols;
 import me.rafaa.vecinstrumentpanel.R;
-import me.rafaa.vecinstrumentpanel.config.ObdConfig;
 
 import java.util.ArrayList;
 import java.util.Set;
@@ -99,22 +98,6 @@ public class ConfigActivity extends PreferenceActivity implements OnPreferenceCh
         } catch (Exception e) {
         }
         return ed;
-    }
-
-    /**
-     * @param prefs
-     * @return
-     */
-    public static ArrayList<ObdCommand> getObdCommands(SharedPreferences prefs) {
-        ArrayList<ObdCommand> cmds = ObdConfig.getCommands();
-        ArrayList<ObdCommand> ucmds = new ArrayList<>();
-        for (int i = 0; i < cmds.size(); i++) {
-            ObdCommand cmd = cmds.get(i);
-            boolean selected = prefs.getBoolean(cmd.getName(), true);
-            if (selected)
-                ucmds.add(cmd);
-        }
-        return ucmds;
     }
 
     /**
@@ -218,7 +201,7 @@ public class ConfigActivity extends PreferenceActivity implements OnPreferenceCh
      *
      * TODO This should be read from preferences database
      */
-        ArrayList<ObdCommand> cmds = ObdConfig.getCommands();
+        /*ArrayList<ObdCommand> cmds = ObdConfig.getCommands();
         PreferenceScreen cmdScr = (PreferenceScreen) getPreferenceScreen()
                 .findPreference(COMMANDS_SCREEN_KEY);
         for (ObdCommand cmd : cmds) {
@@ -227,7 +210,7 @@ public class ConfigActivity extends PreferenceActivity implements OnPreferenceCh
             cpref.setKey(cmd.getName());
             cpref.setChecked(true);
             cmdScr.addPreference(cpref);
-        }
+        }*/
 
     /*
      * Available OBD protocols

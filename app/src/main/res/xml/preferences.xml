@@ -23,19 +23,19 @@
             android:summary="@string/pref_vehicle_id_summary"
             android:title="@string/pref_vehicle_id_title" />
     </PreferenceCategory>
-    <PreferenceCategory android:title="@string/title_pref_bluetooth">
+    <PreferenceCategory android:title="@string/title_pref_wifi">
         <CheckBoxPreference
             android:defaultValue="false"
-            android:dialogTitle="@string/pref_bluetooth_title"
-            android:key="enable_bluetooth_preference"
-            android:summaryOff="@string/pref_bluetooth_summaryOff"
-            android:summaryOn="@string/pref_bluetooth_summaryOn"
-            android:title="@string/pref_bluetooth_title" />
+            android:dialogTitle="@string/pref_wifi_title"
+            android:key="enable_wifi_preference"
+            android:summaryOff="@string/pref_wifi_summaryOff"
+            android:summaryOn="@string/pref_wifi_summaryOn"
+            android:title="@string/pref_wifi_title" />
         <ListPreference
-            android:dialogTitle="@string/pref_bluetooth_list_devices_title"
-            android:key="bluetooth_list_preference"
-            android:summary="@string/pref_bluetooth_list_devices_summary"
-            android:title="@string/pref_bluetooth_list_devices_title" />
+            android:dialogTitle="@string/pref_wifi_list_devices_title"
+            android:key="wifi_list_preference"
+            android:summary="@string/pref_wifi_list_devices_summary"
+            android:title="@string/pref_wifi_list_devices_title" />
     </PreferenceCategory>
     <PreferenceCategory
         android:key="@string/pref_gps_category"

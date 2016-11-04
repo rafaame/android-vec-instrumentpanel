@@ -4,8 +4,12 @@
     <color name="colorPrimaryDark">#303F9F</color>
     <color name="colorAccent">#DDDDDD</color>
 
-    <color name="black_overlay">#66000000</color>
+    <color name="black_overlay">#101010</color>
+    <color name="gray_overlay">#303030</color>
 
     <color name="color_status_icon_inactive">#FF0000</color>
     <color name="color_status_icon_active">#00FF00</color>
+
+    <color name="chart_orange_line">#F48117</color>
+    <color name="chart_orange_fill">#F48117</color>
 </resources>

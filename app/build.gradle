@@ -33,7 +33,7 @@ configurations {
 }
 
 dependencies {
-    compile fileTree(include: ['*.jar'], dir: 'libs')
+    compile project (':sdktools')
     compile fileTree(dir: "$buildDir", include: 'native-libs.jar')
     testCompile 'junit:junit:4.12'
     compile 'com.android.support:appcompat-v7:23.1.1'
@@ -41,8 +41,8 @@ dependencies {
     compile 'org.roboguice:roboguice:3.+'
     provided 'org.roboguice:roboblender:3.+'
     compile 'com.squareup.retrofit:retrofit:1.9.0'
-    skobblersdk 'com.skobbler.ngx:SKMaps:2.5.0'
-    compile project (':sdktools')
+    compile 'com.github.PhilJay:MPAndroidChart:v3.0.0-beta1'
+    compile 'com.google.android.gms:play-services-appindexing:8.4.0'
 }
 
 def assetsPath = "$projectDir/src/main/assets"
